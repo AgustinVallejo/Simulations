@@ -6,6 +6,7 @@ class Button {
         this.func = func;
         this.toggled = toggled;
         this.color = col;
+        this.background = 50;
     }
 
     draw(){
@@ -17,7 +18,7 @@ class Button {
         textSize(25 * width / 1500);
         let w = textWidth(this.text)*0.7;
         let h = 25 * width / 1500;
-        fill(50);
+        fill(this.background);
         stroke(30);
         strokeWeight(5);
         rect(0, 0, 2*w, 2*h)

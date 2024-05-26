@@ -22,7 +22,13 @@ class GasTube{
 
     add(){
         for (let i = 0; i < 10; i++){
-            this.molecules.push( new GasMolecule(this.w, this.h) )
+            let newMolecule = new GasMolecule(this.w, this.h);
+            if ( this.electrified ) {
+                newMolecule.electrified = true;
+                let ColorID = int(random(3));
+                this.exciteMolecule(newMolecule, ColorID, this.gasLines[ColorID]);
+            }
+            this.molecules.push( newMolecule )
         }
     }
 
@@ -34,6 +40,36 @@ class GasTube{
 
     electrify(){
         this.electrified = !this.electrified;
+
+        currentSimState = this.electrified ? 'electrified' : currentSimState;
+        selectState();
+
+        this.molecules.forEach(molecule => {
+            if ( this.electrified ) {
+                molecule.electrified = true;
+                let ColorID = int(random(3));
+                this.exciteMolecule(molecule, ColorID, this.gasLines[ColorID]);
+            }
+            else {
+                molecule.electrified = false;
+            }
+        } );
+    }
+
+    electrifyOff(){
+        this.electrified = false;
+        this.molecules.forEach(molecule => {
+            molecule.electrified = false;
+        } );
+    }
+
+    exciteMolecule( molecule, colorID, line ){
+        molecule.excited = true;
+        molecule.t0 = this.t;
+        molecule.colorID = colorID; // Tell molecule which color it is
+        colorMode(HSB);
+        molecule.color = color((1-this.gasLines[colorID])*255, 100, 255); // Paint the molecule
+        colorMode(RGB);
     }
 
     draw(){
@@ -46,34 +82,28 @@ class GasTube{
         strokeWeight(8);
         rectMode(CENTER)
         rect(0, 0, this.w, this.h, 5);
-
         strokeWeight(2)
-        colorMode(HSB)
+
         this.lineStrength = [0,0,0]; // Reset lines strength
         this.molecules.forEach(molecule => {
             if ((abs(molecule.y) < 0.15*height) && (random() > 0.995)){ // Molecule inside ray?
                 if (whiteLight){ // White light logic
                     let colorID = int(random(3)) // Assign molecule to a random line
-                    molecule.excited = true;
-                    molecule.t0 = this.t;
-                    molecule.colorID = colorID; // Tell molecule which color it is
-                    molecule.color = color((1-this.gasLines[colorID])*255, 100, 255); // Paint the molecule
+                    this.exciteMolecule(molecule, colorID, this.gasLines[colorID]);
                 }
                 else if (colorLight){ // Color light logic
                     for (let i=0; i<3; i++){
                         let line = this.gasLines[i];
                         let colorID = i;
                         if (abs(mouseY/height - line) < 0.04){
-                            molecule.excited = true;
-                            molecule.t0 = this.t;
-                            molecule.colorID = colorID; // Tell molecule which color it is
-                            molecule.color = color((1-line)*255, 100, 255);
+                            this.exciteMolecule(molecule, colorID, line);
                         }
                         
                     }
                 }
             }
-            molecule.draw(this.t);
+            molecule.update(this.t);
+            molecule.draw();
             if ((molecule.excited)&&(molecule.colorID != 3)){
                 this.lineStrength[molecule.colorID] += 3/this.N;
             }
@@ -96,6 +126,7 @@ class GasMolecule{
     constructor(w, h){
         this.colorID = 3;
         this.excited = false;
+        this.electrified = false;
         this.t0 = 0;
         this.color = color(255);
 
@@ -106,25 +137,27 @@ class GasMolecule{
         this.i = random(10);
     }
 
-    draw(t) {
+    draw() {
         fill(0);
-        noStroke();
         stroke(50);
-        if (this.excited) {
-            if (t - this.t0 < 300){
-                fill(this.color);
-            }
-            else {
+        if (this.excited || this.electrified) {
+            stroke(200);
+            fill(this.color);
+        }
+        circle(this.x, this.y, 10);
+    }
+
+    update(t){
+        this.x = (-1 + 2*noise(this.i + t*0.001))*this.w/2;
+        this.y = (-1 + 2*noise(this.i + t*0.001 + 20))*this.h/2;
+
+        if (this.excited && !this.electrified) {
+            if (t - this.t0 > 300){
                 this.excited = false;
                 this.t0 = 0;
                 this.colorID = 3;
+                this.color = color(0);
             }
         }
-        circle(this.x, this.y, 10);
-
-        this.x = (-1 + 2*noise(this.i + t*0.001))*this.w/2;
-        this.y = (-1 + 2*noise(this.i + t*0.001 + 20))*this.h/2;
     }
-
-
 }

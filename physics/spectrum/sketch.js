@@ -3,6 +3,9 @@ let canvas2;
 
 let t = 0;
 
+let simStates = ['white','color','electrified']
+let currentSimState = 'color'
+
 let clicked = false;
 let whiteLight = false;
 let colorLight = true;
@@ -34,10 +37,10 @@ function initializeFields(){
     
     AminusButton = new Button("  -  ",0.31*width,0.05*height,() => { gasA.pop() }, true);
     AplusButton = new Button("  +  ",0.35*width,0.05*height,() => { gasA.add() }, true);
-    AElectrifyButton = new Button("  E  ",0.395*width,0.05*height,() => { gasA.electrify() }, gasA.electrified);
+    AElectrifyButton = new Button("⚡",0.395*width,0.05*height,() => { gasA.electrify() }, gasA.electrified);
     BminusButton = new Button("  -  ",0.46*width,0.05*height,() => { gasB.pop() }, true);
     BplusButton = new Button("  +  ",0.50*width,0.05*height,() => { gasB.add() }, true);
-    BElectrifyButton = new Button("  E  ",0.545*width,0.05*height,() => { gasB.electrify() }, gasB.electrified);
+    BElectrifyButton = new Button("⚡",0.545*width,0.05*height,() => { gasB.electrify() }, gasB.electrified);
     
 }
 
@@ -95,13 +98,15 @@ function draw(){
         gasA.draw();
         AplusButton.draw();
         AminusButton.draw();
-        // AElectrifyButton.draw();
+        AElectrifyButton.background = gasA.electrified ? 200 : 50;
+        AElectrifyButton.draw();
     }
     if (gasB.enabled){
         gasB.draw();
         BplusButton.draw();
         BminusButton.draw();
-        // BElectrifyButton.draw();
+        BElectrifyButton.background = gasB.electrified ? 200 : 50;
+        BElectrifyButton.draw();
     }
     if (showGraph){
         graph.draw();
@@ -121,20 +126,45 @@ function invertLines(lines){
     return newlines
 }
 
+function selectState(){
+    switch (currentSimState){
+        case 'white':
+            whiteLight = true;
+            colorLight = false;
+            whiteButton.toggled = true;
+            colorButton.toggled = false;
+
+            gasA.electrifyOff();
+            gasB.electrifyOff();
+            break;
+        case 'color':
+            whiteLight = false;
+            colorLight = true;
+            whiteButton.toggled = false;
+            colorButton.toggled = true;
+
+            gasA.electrifyOff();
+            gasB.electrifyOff();
+            break;
+        case 'electrified':
+            whiteLight = false;
+            colorLight = false;
+            whiteButton.toggled = false;
+            colorButton.toggled = false;
+            break;
+        default:
+            break;
+    }
+}
+
 function enableWhiteLights(){
-    whiteLight = !whiteLight;
-    whiteButton.toggled = !whiteButton.toggled;
-    
-    colorLight = false;
-    colorButton.toggled = false;
+    currentSimState = 'white';
+    selectState();
 }
 
 function enableColors(){
-    whiteLight = false;
-    whiteButton.toggled = false;
-    
-    colorLight = !colorLight;
-    colorButton.toggled = !colorButton.toggled;
+    currentSimState = 'color';
+    selectState();
 }
 
 function toggleGasA(){
@@ -153,7 +183,6 @@ function windowResized(){
     initializeFields()}
 
 function keyPressed(){
-    // Press a to toggle shaded mode
     if (key == "g"){
         showGraph = !showGraph;
     }
