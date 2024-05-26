@@ -91,6 +91,9 @@ function draw(){
     strokeWeight(5)
     rectMode(CENTER)
     rect(0, 0, 0.1*width, 0.15*width)
+    textSize(15)
+    fill(150)
+    text("Detector",-30,0)
     stroke(255)
     pop()
     

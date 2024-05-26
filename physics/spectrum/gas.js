@@ -84,6 +84,18 @@ class GasTube{
         rect(0, 0, this.w, this.h, 5);
         strokeWeight(2)
 
+        if ( this.electrified ) {
+            // Draw a lightning bolt from top to bottom
+            stroke(0,100,100)
+            let previousPoint = createVector(0, -this.h/2);
+            let step = 10;
+            for ( let i = -this.h/2; i < this.h/2; i += step ) {
+                let newX = (1-2*noise( this.t/10 + i ) ) * Math.exp(-abs(i)/100) * this.w/2;
+                line( previousPoint.x, previousPoint.y, newX, previousPoint.y + step );
+                previousPoint = createVector(newX, previousPoint.y + step);
+            }
+        }
+
         this.lineStrength = [0,0,0]; // Reset lines strength
         this.molecules.forEach(molecule => {
             if ((abs(molecule.y) < 0.15*height) && (random() > 0.995)){ // Molecule inside ray?
